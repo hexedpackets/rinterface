@@ -8,41 +8,44 @@ module Erlang
   class Node
     attr_reader :result
 
-    def initialize
+    # Get the Cookie from the home directory
+    def self.get_cookie_from_file
+      # ... I did it all for the cookie, come on the cookie ...
+      fp = File.expand_path("#{ENV['HOME']}/.erlang.cookie")
+      fh = File.open(fp,'r')
+      fh.readline.strip
+    end
+
+    def self.cookie_from_file
+      @@cookie_from_file ||= get_cookie_from_file
+    end
+
+    def initialize(node, cookie = cookie_from_file)
       @result = nil
+      @node = node
+      @cookie = cookie
     end
 
-    class << self
-      def fun(node, mod, fun, *args)
-        rpc(node, mod, fun, args)
-      end
-
-      def rpc(node, mod, fun, args)
-        n = self.new
-        setup = proc{ n.do_connect(node.to_s, mod.to_s, fun.to_s, args) }
-
-        if EM.reactor_running?
-          setup.call
-        else
-          EM.run(&setup)
-        end
-        n.result
-      end
-      #alias :fun :rpc
+    def fun(mod, fun, *args)
+      rpc(mod, fun, args)
     end
 
-    def do_connect(node,mod,fun,args)
-      epmd = EpmdConnection.lookup_node(node)
+    def rpc(mod, fun, args)
+      setup = proc{ do_connect(mod.to_s, fun.to_s, args) }
+
+      if EM.reactor_running?
+        setup.call
+      else
+        EM.run(&setup)
+      end
+      result
+    end
+    #alias :fun :rpc
+
+    def do_connect(mod,fun,args)
+      epmd = EpmdConnection.lookup_node(@node)
       epmd.callback do |port|
-        conn = NodeConnection.rpc_call(node,port,mod,fun,args) do |c|
-          c.destnode = node
-          c.mod = mod
-          c.fun = fun
-          c.args = args
-          c.port = port
-          c.myname = build_nodename
-          c.cookie = get_cookie
-        end
+        conn = NodeConnection.rpc_call(@node,@cookie,port,mod,fun,args)
         conn.callback do |r|
           # Check for bad rpc response
           # this is where I miss the patten matching in Erlang
@@ -71,8 +74,21 @@ module Erlang
       end
     end
 
+    def method_missing(mod)
+      ErlangModule.new(self, mod)
+    end
   end
 
+  class ErlangModule
+      def initialize(node, name)
+          @node = node
+          @name = name
+      end
+
+      def method_missing(func, *args)
+          @node.rpc(@name, func, args)
+      end
+  end
 
   class NodeConnection < EM::Connection
     include EM::Deferrable
@@ -94,7 +110,7 @@ module Erlang
     # mod  = the module to call
     # fun  = the function to call
     # args = args to pass to fun
-    def self.rpc_call(nodename,port,mod,fun,args)
+    def self.rpc_call(nodename,cookie,port,mod,fun,args)
       host, node = host_info(nodename)
       EM.connect(host,port,self) do |c|
         c.destnode = node
@@ -103,17 +119,8 @@ module Erlang
         c.args = args
         c.port = port
         c.myname = build_nodename
-        c.cookie = get_cookie
+        c.cookie = cookie
       end
-    end
-
-
-    # Get the Cookie from the home directory
-    def self.get_cookie
-      # ... I did it all for the cookie, come on the cookie ...
-      fp = File.expand_path("~#{ENV['USER']}/.erlang.cookie")
-      fh = File.open(fp,'r')
-      fh.readline.strip
     end
 
     # Build a nodename for us

@@ -47,17 +47,7 @@ module Erlang
       epmd.callback do |port|
         conn = NodeConnection.rpc_call(@node,@cookie,port,mod,fun,args)
         conn.callback do |r|
-          # Check for bad rpc response
-          # this is where I miss the patten matching in Erlang
-          if r.is_a?(Array)
-            if !r.empty? && r[0] == :badrpc
-              @result = [:badrpc,r[1]]
-            else
-              @result = [:ok,r]
-            end
-          else
-            @result = [:ok,r]
-          end
+          @result = r
           # don't stop EventMachine instance in thin/rails server
           EM.stop unless (defined?(Rails) || defined?(Thin))
         end

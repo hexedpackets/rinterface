@@ -125,7 +125,7 @@ module Erlang
       value = read_4
       negative = (value >> 31)[0] == 1
       value = (value - (1 << 32)) if negative
-      value = Fixnum.induced_from(value)
+      value
     end
 
     def read_small_bignum
@@ -138,7 +138,7 @@ module Erlang
         value = (byte * (256 ** index))
         sign != 0 ? (result - value) : (result + value)
       end
-      Bignum.induced_from(added)
+      added
     end
 
     def read_large_bignum
@@ -151,7 +151,7 @@ module Erlang
         value = (byte * (256 ** index))
         sign != 0 ? (result - value) : (result + value)
       end
-      Bignum.induced_from(added)
+      added
     end
 
     def read_double

@@ -22,6 +22,12 @@ module Erlang
       end
     end
 
+    class ErlString < List
+      def initialize(string)
+        super string.chars.map{|c| c.ord}
+      end
+    end
+
   end
 
 

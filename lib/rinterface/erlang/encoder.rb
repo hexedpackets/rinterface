@@ -23,7 +23,7 @@ module Erlang
       when Fixnum, Bignum then write_integer(obj)
       when Float then write_double(obj)
       when Array then write_tuple(obj)
-      when String then write_binary(obj)
+      when String then write_list(ErlString.new(obj))
       when Pid then write_pid(obj)
       when List then write_list(obj)
       else

@@ -24,6 +24,7 @@ module Erlang
       @result = nil
       @node = node
       @cookie = cookie
+      @reactor_started_by_someone_else = EM.reactor_running?
     end
 
     def fun(mod, fun, *args)
@@ -33,7 +34,7 @@ module Erlang
     def rpc(mod, fun, args)
       setup = proc{ do_connect(mod.to_s, fun.to_s, args) }
 
-      if EM.reactor_running?
+      if @reactor_started_by_someone_else
         setup.call
       else
         EM.run(&setup)
@@ -48,20 +49,23 @@ module Erlang
         conn = NodeConnection.rpc_call(@node,@cookie,port,mod,fun,args)
         conn.callback do |r|
           @result = r
-          # don't stop EventMachine instance in thin/rails server
-          EM.stop unless (defined?(Rails) || defined?(Thin))
+          shutdown_reactor_if_needed
         end
         conn.errback do |err|
           # never called??
           @result = [:badrpc,err]
-          EM.stop unless (defined?(Rails) || defined?(Thin))
+          shutdown_reactor_if_needed
         end
       end
       epmd.errback do |err|
         # return bad RPC no port found (0)
         @result = [:badrpc,"no port found for service"]
-        EM.stop unless (defined?(Rails) || defined?(Thin))
+        shutdown_reactor_if_needed
       end
+    end
+
+    def shutdown_reactor_if_needed
+      EM.stop unless @reactor_started_by_someone_else
     end
 
     def method_missing(mod)

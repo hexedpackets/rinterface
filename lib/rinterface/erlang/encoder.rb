@@ -23,7 +23,8 @@ module Erlang
       when Fixnum, Bignum then write_integer(obj)
       when Float then write_double(obj)
       when Array then write_tuple(obj)
-      when String then write_list(ErlString.new(obj))
+      when Binary then write_binary(obj)
+      when String then write_erl_string(obj)
       when Pid then write_pid(obj)
       when List then write_list(obj)
       else
@@ -50,6 +51,12 @@ module Erlang
     def write_symbol(sym)
       data = sym.to_s
       write_1 ATOM
+      write_2 data.length
+      write_string data
+    end
+
+    def write_erl_string(data)
+      write_1 STRING
       write_2 data.length
       write_string data
     end

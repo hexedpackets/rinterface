@@ -22,13 +22,8 @@ module Erlang
       end
     end
 
-    class ErlString < List
-      def initialize(string)
-        super string.chars.map{|c| c.ord}
-      end
+    class Binary < String
     end
 
   end
-
-
 end

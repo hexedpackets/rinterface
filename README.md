@@ -10,7 +10,7 @@ __License:__ MIT License
 
 * Clone the project and enter the project directory and compile the project
   <pre>
-	git clone https://github.com/jacktang/rinterface.git`
+	git clone https://github.com/hexedpackets/rinterface.git`
 	cd rinterface; rake;
   </pre> 
 * In one terminal run the command:
@@ -32,7 +32,8 @@ __License:__ MIT License
 
 In your Ruby code, make a call to the Erlang node like this:
 <pre>
-    r = Erlang::Node.rpc("math","math_server","add",[10,20])
+    node = Erlang::Node.new("foo@really.big.server.com", "omnomcookie")
+    r = node.rpc("math","math_server","add",[10,20])
 
     if r[0] == :badrpc
       puts "Got and Error. Reason #{r[1]}"
@@ -42,7 +43,8 @@ In your Ruby code, make a call to the Erlang node like this:
 </pre>
 Where:
 
-*  math is the node name (the -sname of the Erlang node)
+*  foo@really.big.server.com is the name of the Erlang node
+*  omnomcookie is the cookie to connect to the Erlang node
 *  math_server is the name of the module
 *  add is the funtion to call
 *  [10,20] is an array of arguments to pass to the function

@@ -40,6 +40,7 @@ module Erlang
       when STRING then read_erl_string
       when LIST then read_list
       when BIN then read_bin
+      when MAP then read_map
       else
         fail("Unknown term tag: #{peek_1}")
       end
@@ -94,8 +95,8 @@ module Erlang
     end
 
     def read_4_float
-      read(4).unpack("g").first 
-    end 
+      read(4).unpack("g").first
+    end
 
     def read_8_double
       read(8).unpack("G").first
@@ -218,6 +219,13 @@ module Erlang
       fail("Invalid Type, not an erlang binary") unless read_1 == BIN
       length = read_4
       read_string(length)
+    end
+
+    def read_map
+      fail("Invalid Type, not an erlang map") unless read_1 == MAP
+      num_items = read_4 * 2
+      items = (0...num_items).map{|i| read_any_raw}
+      Hash[*items]
     end
 
     class DecodeError < StandardError;    end

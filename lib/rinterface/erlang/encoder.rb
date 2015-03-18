@@ -27,6 +27,7 @@ module Erlang
       when String then write_erl_string(obj)
       when Pid then write_pid(obj)
       when List then write_list(obj)
+      when Hash then write_map(obj)
       else
         raise "Failed encoding!"
       end
@@ -108,6 +109,16 @@ module Erlang
       write_1 BIN
       write_4 data.length
       write_string data
+    end
+
+    def write_map(data)
+      write_1 MAP
+      write_4 data.length
+
+      data.each do |k,v|
+        write_any_raw k
+        write_any_raw v
+      end
     end
 
   end

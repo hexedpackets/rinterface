@@ -5,10 +5,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rinterface}
-  s.version = "0.0.3.asynchrony"
+  s.version = "0.0.4.hexedpackets"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Dave Bryson", "\303\211verton Ribeiro", "Marcos Piccinini"]
+  s.authors = ["Dave Bryson", "\303\211verton Ribeiro", "Marcos Piccinini", "William Huba"]
   s.date = %q{2010-03-31}
   s.description = %q{Pure Ruby client that can send RPC calls to an Erlang node}
   s.email = %q{r@interf.ace}
